@@ -49,3 +49,25 @@ Documentation of my hands-on cybersecurity home lab — SOC analyst training
 - *Confidentiality* — only authorized access (broken by a data breach).
 - *Integrity* — data is accurate and unaltered (broken by tampering).
 - *Availability* — systems are up when needed (broken by DDoS or outage).
+
+## Day 6 — First Packet Capture & Analysis (Wireshark)
+
+Isolated both VMs on a Host-Only network, then captured and analyzed ICMP traffic between them.
+
+**Setup**
+- Switched Kali and the Windows target to a Host-Only network (`192.168.251.0/24`) to sandbox the lab.
+- Initial ping failed (100% loss) — Windows Firewall blocks inbound ICMP by default.
+- Added a *targeted* firewall rule allowing only inbound ICMPv4, rather than disabling the firewall — least-privilege in practice. Ping then succeeded.
+
+**Capture & analysis**
+- Captured live traffic on `eth0` in Wireshark, filtered to `icmp`.
+- Observed the request/reply pairing (Type 8 → Type 0) matched by identifier and sequence number.
+- Dissected packets across layers: Ethernet (Layer 2), IPv4 (Layer 3), ICMP payload.
+
+**Key finding — passive OS fingerprinting via TTL**
+- Kali's requests: TTL **64** (Linux default).
+- Windows' replies: TTL **128** (Windows default).
+- Conclusion: an analyst can infer a host's OS from TTL alone, without authenticating to it.
+- Bonus: both hosts' MAC addresses carried the `00:0c:29` VMware OUI, identifying them as virtual machines.
+
+**Skills:** network traffic capture, Wireshark filtering, protocol/layer analysis, OS fingerprinting, host-based firewall configuration.
