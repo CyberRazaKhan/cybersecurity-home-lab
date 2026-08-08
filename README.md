@@ -16,6 +16,7 @@ Documentation of my hands-on cybersecurity home lab — SOC analyst training
 - Kali (attacker): `192.168.42.128`
 - Windows target: `192.168.42.130`
 - Gateway (VMware NAT router): `192.168.42.2`
+- Note: Both VMs later moved to an isolated Host-Only network (192.168.251.0/24) for scanning/capture exercises.
   
 ## Day 1 — Lab Setup
 - Installed VMware Workstation Pro and verified the Kali image via SHA256 checksum before importing.
@@ -71,3 +72,28 @@ Isolated both VMs on a Host-Only network, then captured and analyzed ICMP traffi
 - Bonus: both hosts' MAC addresses carried the `00:0c:29` VMware OUI, identifying them as virtual machines.
 
 **Skills:** network traffic capture, Wireshark filtering, protocol/layer analysis, OS fingerprinting, host-based firewall configuration.
+
+## Network Scanning with Nmap
+
+Performed port and service scanning from Kali against the Windows target, and demonstrated how a host firewall changes visibility.
+
+**Method**
+- Ran `nmap` and `nmap -sV` against the Windows target from Kali.
+- With Windows Firewall **enabled**, all 1000 ports returned "filtered (no-response)" — the host was effectively invisible to scanning.
+- With the firewall **disabled** (safe only because this is an isolated Host-Only lab), the scan revealed the host's true state.
+
+**Findings (firewall off)**
+| Port | Service | Notes |
+|------|---------|-------|
+| 135/tcp | msrpc | Windows RPC endpoint mapper |
+| 139/tcp | netbios-ssn | Legacy NetBIOS session service |
+| 445/tcp | microsoft-ds (SMB) | File sharing — historically high-risk (EternalBlue/WannaCry) |
+
+- `nmap -sV` fingerprinted the OS as **Windows** (`CPE: cpe:/o:microsoft:windows`) from service banners — OS identification without authentication.
+- 135/139/445 together are a classic Windows host signature.
+
+**Takeaway**
+- A host-based firewall dramatically reduced the attack surface visible to a scanner (from a full service list to zero).
+- SMB (445) exposure is a top concern for analysts, especially if reachable beyond the local network.
+
+**Skills:** port scanning, service/version detection, OS fingerprinting, attack-surface analysis, host firewall impact.
